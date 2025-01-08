@@ -1,4 +1,4 @@
-#Rmarkdown Data Analysis Projects
+##Rmarkdown Data Analysis Projects
 
 This repository contains a collection of data analysis projects and statistical explorations documented using RMarkdown. The projects focus on applying analytical techniques, visualizations, and statistical models to uncover insights and solve specific questions.
 
