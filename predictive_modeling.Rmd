@@ -1,0 +1,225 @@
+---
+title: "HW_2 3rd question"
+output: html_document
+date: "2024-02-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+errors <- seq(-10, 10, by = 0.1)
+
+#MSE(Mean squared error) 
+quadratic_loss <- function(errors) {
+  return(errors^2)
+}
+
+#MAE(mean absolute error)
+mean_absolute_error <- function(errors) {
+  return(abs(errors))
+}
+
+#Huber loss
+huber_loss <- function(errors, delta) {
+  loss <- ifelse(abs(errors) <= delta, 0.5 * errors^2, delta * (abs(errors) - 0.5 * delta))
+  return(loss)
+}
+
+delta1 <- 1
+delta2 <- 5
+
+quadratic_loss_values <- quadratic_loss(errors)
+mean_absolute_error_values <- mean_absolute_error(errors)
+huber_loss_values_delta1 <- huber_loss(errors, delta1)
+huber_loss_values_delta2 <- huber_loss(errors, delta2)
+
+# Plotting all the functions
+plot(errors, quadratic_loss_values, type = "l", col = "blue", 
+     xlab = "Error (e)", ylab = "Loss", 
+     main = "Comparison of Loss Functions for Linear Regression")
+lines(errors, mean_absolute_error_values, col = "red", lty = 2)
+lines(errors, huber_loss_values_delta1, col = "green", lty = 3)
+lines(errors, huber_loss_values_delta2, col = "purple", lty = 4)
+legend("topright", legend = c("Quadratic Loss (MSE)", "Mean Absolute Error (MAE)", paste("Huber Loss (Delta =", delta1, ")", sep = ""), paste("Huber Loss (Delta =", delta2, ")", sep = "")), 
+       col = c("blue", "red", "green", "purple"), lty = c(1, 2, 3, 4))
+```
+
+Advantages and disadvantages of these loss functions on linear regression:
+
+**Quadratic loss function:**
+Advantage: penalizes heavily on outliers that has high errors.
+Disadvantage: Put more emphasis on large errors(outliers) which might not be desirable in every case.
+
+**Mean absolute error function:**
+Advantage:less sensitive to outliers compared to quadratic as it does not square the error terms.
+Disadvantage: it is not differentiable at 0 which can pose challenges for algorithms like gradient descent.
+
+**Huber loss:**
+Advantage: Behaves both like quadratic and mean absolute error at given values higher than or lower to delta. Optimizes the best of both the loss functions.
+Disadvantage: Requires tuning, the parameter (delta) is set that controls it's transition from mean absolute to quadratic error.
+
+** b) gradient descent for loss functions**
+
+```{r}
+
+# Function to calculate gradient of quadratic loss
+gradient_quadratic_loss <- function(errors) {
+  return(mean(2 * errors))
+}
+
+# Gradient for quadratic loss
+gradient_descent_quadratic_loss <- function(errors, theta_init, alpha, max_iterations, tolerance) {
+  theta <- theta_init
+  for (iter in 1:max_iterations) {
+    loss_gradient <- gradient_quadratic_loss(errors)
+    if (abs(loss_gradient) < tolerance) {
+      break
+    }
+    theta <- theta - alpha * loss_gradient
+  }
+  return(theta)
+}
+#gradient of mean absolute loss
+gradient_mean_absolute_loss_single <- function(error) {
+  return(ifelse(error > 0, 1, -1))
+}
+
+# Gradient descent for mean absolute loss
+gradient_descent_mean_absolute_loss <- function(errors, theta_init, alpha, max_iterations, tolerance) {
+  theta <- theta_init
+  for (iter in 1:max_iterations) {
+    loss_gradient <- mean(sapply(errors, gradient_mean_absolute_loss_single))
+    if (abs(loss_gradient) < tolerance) {
+      break
+    }
+    theta <- theta - alpha * loss_gradient
+  }
+  return(theta)
+}
+#  gradient for Huber loss 
+gradient_huber_loss_single <- function(error, delta) {
+  if (abs(error) <= delta) {
+    return(error)
+  } else {
+    return(delta * sign(error))
+  }
+}
+
+# Gradient descent for Huber loss
+gradient_descent_huber_loss <- function(errors, theta_init, alpha, max_iterations, tolerance, delta) {
+  theta <- theta_init
+  for (iter in 1:max_iterations) {
+    loss_gradient <- mean(sapply(errors, gradient_huber_loss_single, delta = delta))
+    if (abs(loss_gradient) < tolerance) {
+      break
+    }
+    theta <- theta - alpha * loss_gradient
+  }
+  return(theta)
+}
+
+
+theta_init <- 0  # Initial guess for parameter theta
+alpha <- 0.01    # Learning rate
+max_iterations <- 1000
+tolerance <- 1e-5
+delta <- 1       # Huber loss parameter
+
+
+errors <- seq(-10, 10, by = 0.1)
+
+
+theta_gd <- gradient_descent_quadratic_loss(errors, theta_init, alpha, max_iterations, tolerance)
+cat("Optimal parameter (theta) for quadratic loss (gradient descent):", theta_gd, "\n")
+
+theta_gd <- gradient_descent_mean_absolute_loss(errors, theta_init, alpha, max_iterations, tolerance)
+cat("Optimal parameter (theta) for mean absolute loss (gradient descent):", theta_gd, "\n")
+
+theta_gd <- gradient_descent_huber_loss(errors, theta_init, alpha, max_iterations, tolerance, delta)
+cat("Optimal parameter (theta) for Huber loss (gradient descent):", theta_gd, "\n")
+
+
+```
+
+
+** c) Stochastic gradient descent for loss functions**
+
+```{r}
+# Stochastic gradient descent for quadratic loss
+sgd_quadratic_loss <- function(errors, theta_init, alpha, max_iterations, tolerance) {
+  theta <- theta_init
+  N <- length(errors)
+  for (iter in 1:max_iterations) {
+    i <- sample(1:N, size = 1)  # Randomly choose a training example
+    error <- errors[i]
+    loss_gradient <- 2 * error
+    if (abs(loss_gradient) < tolerance) {
+      break
+    }
+    theta <- theta - alpha * loss_gradient
+  }
+  return(theta)
+}
+
+gradient_mean_absolute_loss_single <- function(errors) {
+  return(ifelse(errors > 0, 1, -1))
+}
+
+# Stochastic gradient descent for mean absolute loss
+sgd_mean_absolute_loss <- function(errors, theta_init, alpha, max_iterations, tolerance) {
+  theta <- theta_init
+  N <- length(errors)
+  for (iter in 1:max_iterations) {
+    i <- sample(1:N, size = 1)  # Randomly choose a training example
+    error <- errors[i]
+    loss_gradient <- gradient_mean_absolute_loss_single(error)
+    if (abs(loss_gradient) < tolerance) {
+      break
+    }
+    theta <- theta - alpha * loss_gradient
+  }
+  return(theta)
+}
+
+
+# Stochastic gradient descent for Huber loss
+sgd_huber_loss <- function(errors, theta_init, alpha, max_iterations, tolerance, delta) {
+  theta <- theta_init
+  N <- length(errors)
+  for (iter in 1:max_iterations) {
+    i <- sample(1:N, size = 1)  # Randomly choose a training example
+    error <- errors[i]
+    loss_gradient <- gradient_huber_loss_single(error, delta)
+    if (abs(loss_gradient) < tolerance) {
+      break
+    }
+    theta <- theta - alpha * loss_gradient
+  }
+  return(theta)
+}
+
+# Example usage
+theta_init <- 0  # Initial guess for parameter theta
+alpha <- 0.01    # Learning rate
+max_iterations <- 1000
+tolerance <- 1e-5
+delta <- 1       # Huber loss parameter
+
+# Generate errors for demonstration
+errors <- seq(-10, 10, by = 0.1)
+
+# Perform stochastic gradient descent
+theta_sgd <- sgd_quadratic_loss(errors, theta_init, alpha, max_iterations, tolerance)
+cat("Optimal parameter (theta) for quadratic loss (stochastic gradient descent):", theta_sgd, "\n")
+
+theta_sgd <- sgd_mean_absolute_loss(errors, theta_init, alpha, max_iterations, tolerance)
+cat("Optimal parameter (theta) for mean absolute loss (stochastic gradient descent):", theta_sgd, "\n")
+
+theta_sgd <- sgd_huber_loss(errors, theta_init, alpha, max_iterations, tolerance, delta)
+cat("Optimal parameter (theta) for Huber loss (stochastic gradient descent):", theta_sgd, "\n")
+
+```
+
+
