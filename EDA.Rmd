@@ -1,0 +1,527 @@
+---
+title: "Untitled"
+output: html_document
+date: "2024-02-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of data1 points
+n <- 50
+
+# Simulate x values
+x <- runif(n, min = -2, max = 2)
+
+# Simulate err from Normal distribution
+err <- rnorm(n, mean = 0, sd = 2)
+
+# Simulate z values
+z <- 3 + 2 * x + err
+
+# Combine x and z into a data1 frame
+data1 <- data.frame(x, z)
+
+# Batch gradient descent function
+bgd <- function(x, z, alpha, epochs) {
+  # Initialize weights
+  w <- c(0, 0)
+  
+  # Number of data1 points
+  n <- length(z)
+  
+  # Perform gradient descent
+  for (epoch in 1:epochs) {
+    # Predicted values
+    y_p <- w[1] + w[2] * x
+    
+    # Calculate gradients
+    grad <- c(sum(y_p - z), sum((y_p - z) * x))
+    
+    # Update weights
+    w <- w - alpha * grad / n
+  }
+  
+  return(w)
+}
+
+# Stochastic gradient descent function
+sgd <- function(x, z, alpha, epochs) {
+  # Initialize weights
+  w <- c(0, 0)
+  
+  # Number of data1 points
+  n <- length(z)
+  
+  # Perform stochastic gradient descent
+  for (epoch in 1:epochs) {
+    # Randomly shuffle ind
+    ind <- sample(1:n)
+    
+    # Iterate through each data1 point
+    for (i in ind) {
+      # Predicted value for this data1 point
+      y_p <- w[1] + w[2] * x[i]
+      
+      # Calculate gradient
+      grad <- c(y_p - z[i], (y_p - z[i]) * x[i])
+      
+      # Update weights
+      w <- w - alpha * grad
+    }
+  }
+  
+  return(w)
+}
+
+# Analytical solution function
+analytical_solution <- function(x, z) {
+  # Construct design matrix
+  x_design <- cbind(rep(1, length(x)), x)
+  
+  # Calculate coefficients using analytical solution
+  w <- solve(t(x_design) %*% x_design) %*% t(x_design) %*% z
+  
+  return(w)
+}
+
+# Fit linear regression using analytical solution
+analytical_result <- analytical_solution(data1$x, data1$z)
+
+# Fit linear regression using batch gradient descent
+batch_result <- bgd(data1$x, data1$z, alpha = 0.01, epochs = 1000)
+
+# Fit linear regression using stochastic gradient descent
+stochastic_result <- sgd(data1$x, data1$z, alpha = 0.01, epochs = 1000)
+
+# Print results
+cat("Analytical Solution Coefficients:", analytical_result, "\n")
+cat("Batch Gradient Descent Coefficients:", batch_result, "\n")
+cat("Stochastic Gradient Descent Coefficients:", stochastic_result, "\n")
+```
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of simulations
+no_of_simulations <- 1000
+
+# Number of data1 points
+n <- 50
+
+# Learning rate
+alpha <- 0.01
+
+# Number of epochs for gradient descent
+epochs <- 1000
+
+# True slope parameter
+true_slope <- 2
+
+# Initialize vectors to store slope estimates
+batch_slopes <- numeric(no_of_simulations)
+stochastic_slopes <- numeric(no_of_simulations)
+
+# Perform simulations
+for (i in 1:no_of_simulations) {
+  # Simulate x values
+  x <- runif(n, min = -2, max = 2)
+  
+  # Simulate err from Normal distribution
+  err <- rnorm(n, mean = 0, sd = 2)
+  
+  # Simulate z values
+  z <- 3 + true_slope * x + err
+  
+  # Fit linear regression using batch gradient descent
+  batch_result <- bgd(x, z, alpha, epochs)
+  
+  # Fit linear regression using stochastic gradient descent
+  stochastic_result <- sgd(x, z, alpha, epochs)
+  
+  # Store slope estimates
+  batch_slopes[i] <- batch_result[2]
+  stochastic_slopes[i] <- stochastic_result[2]
+}
+
+# Plot histograms
+hist(batch_slopes, breaks = 30, col = "blue", xlab = "Slope Estimate", main = "Histogram of Slope Estimates")
+hist(stochastic_slopes, breaks = 30, col = "red", add = TRUE)
+abline(v = true_slope, col = "green", lwd = 2)
+legend("topright", legend = c("Batch GD", "Stochastic GD", "True Value"), fill = c("blue", "red", "green"))
+```
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of data1 points
+n <- 50
+
+# Simulate x values
+x <- runif(n, min = -2, max = 2)
+
+# Simulate err from Normal distribution
+err <- rnorm(n, mean = 0, sd = 2)
+
+# Simulate z values
+z <- 3 + 2 * x + err
+
+# Combine x and z into a data1 frame
+data1 <- data.frame(x, z)
+
+# Batch gradient descent function with squared loss
+batch_gradient_descent_squared_loss <- function(x, z, alpha, epochs) {
+  # Initialize weights
+  w <- c(0, 0)
+  
+  # Number of data1 points
+  n <- length(z)
+  
+  # Perform gradient descent
+  for (epoch in 1:epochs) {
+    # Predicted values
+    y_p <- w[1] + w[2] * x
+    
+    # Calculate gradients
+    grad <- c(sum(y_p - z), sum((y_p - z) * x))
+    
+    # Update weights
+    w <- w - alpha * grad / n
+  }
+  
+  return(w)
+}
+
+# Batch gradient descent function with mean absolute error
+batch_gradient_descent_mean_absolute_error <- function(x, z, alpha, epochs) {
+  # Initialize weights
+  w <- c(0, 0)
+  
+  # Number of data1 points
+  n <- length(z)
+  
+  # Perform gradient descent
+  for (epoch in 1:epochs) {
+    # Predicted values
+    y_p <- w[1] + w[2] * x
+    
+    # Calculate gradients
+    grad <- c(sum(sign(y_p - z)), sum(sign(y_p - z) * x))
+    
+    # Update weights
+    w <- w - alpha * grad / n
+  }
+  
+  return(w)
+}
+
+# Huber loss function
+h_loss <- function(error, delta) {
+  loss <- ifelse(abs(error) <= delta, 0.5 * error^2, delta * (abs(error) - 0.5 * delta))
+  return(loss)
+}
+
+# Batch gradient descent function with Huber loss
+batch_gradient_descent_huber_loss <- function(x, z, alpha, epochs, delta) {
+  # Initialize weights
+  w <- c(0, 0)
+  
+  # Number of data1 points
+  n <- length(z)
+  
+  # Perform gradient descent
+  for (epoch in 1:epochs) {
+    # Predicted values
+    y_p <- w[1] + w[2] * x
+    
+    # Calculate err
+    err <- y_p - z
+    
+    # Calculate gradients using Huber loss
+    grad <- c(sum(ifelse(abs(err) <= delta, err, delta * sign(err))),
+              sum(ifelse(abs(err) <= delta, err * x, delta * sign(err) * x)))
+    
+    # Update weights
+    w <- w - alpha * grad / n
+  }
+  
+  return(w)
+}
+
+# Analytical solution function
+analytical_solution <- function(x, z) {
+  # Construct design matrix
+  x_design <- cbind(rep(1, length(x)), x)
+  
+  # Calculate coefficients using analytical solution
+  w <- solve(t(x_design) %*% x_design) %*% t(x_design) %*% z
+  
+  return(w)
+}
+
+# Fit linear regression using analytical solution
+analytical_result <- analytical_solution(data1$x, data1$z)
+
+# Fit linear regression using batch gradient descent with squared loss
+batch_result_squared_loss <- batch_gradient_descent_squared_loss(data1$x, data1$z, alpha = 0.01, epochs = 1000)
+
+# Fit linear regression using batch gradient descent with mean absolute error
+batch_result_mean_absolute_error <- batch_gradient_descent_mean_absolute_error(data1$x, data1$z, alpha = 0.01, epochs = 1000)
+
+# Fit linear regression using batch gradient descent with Huber loss
+delta <- 1.0 # Huber loss parameter
+batch_result_huber_loss <- batch_gradient_descent_huber_loss(data1$x, data1$z, alpha = 0.01, epochs = 1000, delta = delta)
+
+# Print results
+cat("Analytical Solution Coefficients (Squared Loss):", analytical_result, "\n")
+cat("Batch Gradient Descent Coefficients (Squared Loss):", batch_result_squared_loss, "\n")
+cat("Batch Gradient Descent Coefficients (Mean Absolute Error):", batch_result_mean_absolute_error, "\n")
+cat("Batch Gradient Descent Coefficients (Huber Loss):", batch_result_huber_loss, "\n")
+```
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of simulations
+no_of_simulations <- 1000
+
+# Number of data1 points
+n <- 50
+
+# Learning rate
+alpha <- 0.01
+
+# Number of epochs for gradient descent
+epochs <- 1000
+
+# True slope parameter
+true_slope <- 2
+
+# Initialize vectors to store slope estimates
+squared_loss_slopes <- numeric(no_of_simulations)
+mae_slopes <- numeric(no_of_simulations)
+huber_loss_slopes <- numeric(no_of_simulations)
+
+# Perform simulations
+for (i in 1:no_of_simulations) {
+  # Simulate x values
+  x <- runif(n, min = -2, max = 2)
+  
+  # Simulate err from Normal distribution
+  err <- rnorm(n, mean = 0, sd = 2)
+  
+  # Simulate z values
+  z <- 3 + true_slope * x + err
+  
+  # Fit linear regression using batch gradient descent with squared loss
+  batch_result_squared_loss <- batch_gradient_descent_squared_loss(x, z, alpha, epochs)
+  
+  # Fit linear regression using batch gradient descent with mean absolute error
+  batch_result_mean_absolute_error <- batch_gradient_descent_mean_absolute_error(x, z, alpha, epochs)
+  
+  # Fit linear regression using batch gradient descent with Huber loss
+  batch_result_huber_loss <- batch_gradient_descent_huber_loss(x, z, alpha, epochs, delta)
+  
+  # Store slope estimates
+  squared_loss_slopes[i] <- batch_result_squared_loss[2]
+  mae_slopes[i] <- batch_result_mean_absolute_error[2]
+  huber_loss_slopes[i] <- batch_result_huber_loss[2]
+}
+
+# Plot histograms
+hist(squared_loss_slopes, breaks = 30, col = "blue", xlab = "Slope Estimate", main = "Histogram of Slope Estimates")
+hist(mae_slopes, breaks = 30, col = "red", add = TRUE)
+hist(huber_loss_slopes, breaks = 30, col = "green", add = TRUE)
+abline(v = true_slope, col = "black", lwd = 2)
+legend("topright", legend = c("Squared Loss", "Mean Absolute Error", "Huber Loss", "True Value"), fill = c("blue", "red", "green", "black"))
+```
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of data1 points
+n <- 50
+
+# Simulate x values
+x <- runif(n, min = -2, max = 2)
+
+# Simulate err from Normal distribution
+err <- rnorm(n, mean = 0, sd = 4)
+
+# Simulate z values without outliers
+z <- 3 + 2 * x + err
+
+# Introduce outliers
+for (i in 1:n) {
+  if (runif(1) < 0.1) {
+    if (runif(1) < 0.5) {
+      z[i] <- z[i] * 2  # Increase value by 200%
+    } else {
+      z[i] <- z[i] / 2  # Decrease value by 200%
+    }
+  }
+}
+
+# Combine x and z into a data1 frame
+data1 <- data.frame(x, z)
+
+# Batch gradient descent function with mean absolute error
+batch_gradient_descent_mean_absolute_error <- function(x, z, alpha, epochs) {
+  # Initialize weights
+  w <- c(0, 0)
+  
+  # Number of data1 points
+  n <- length(z)
+  
+  # Perform gradient descent
+  for (epoch in 1:epochs) {
+    # Predicted values
+    y_p <- w[1] + w[2] * x
+    
+    # Calculate gradients
+    grad <- c(sum(sign(y_p - z)), sum(sign(y_p - z) * x))
+    
+    # Update weights
+    w <- w - alpha * grad / n
+  }
+  
+  return(w)
+}
+
+# Huber loss function
+h_loss <- function(error, delta) {
+  loss <- ifelse(abs(error) <= delta, 0.5 * error^2, delta * (abs(error) - 0.5 * delta))
+  return(loss)
+}
+
+# Batch gradient descent function with Huber loss
+batch_gradient_descent_huber_loss <- function(x, z, alpha, epochs, delta) {
+  # Initialize weights
+  w <- c(0, 0)
+  
+  # Number of data1 points
+  n <- length(z)
+  
+  # Perform gradient descent
+  for (epoch in 1:epochs) {
+    # Predicted values
+    y_p <- w[1] + w[2] * x
+    
+    # Calculate err
+    err <- y_p - z
+    
+    # Calculate gradients using Huber loss
+    grad <- c(sum(ifelse(abs(err) <= delta, err, delta * sign(err))),
+              sum(ifelse(abs(err) <= delta, err * x, delta * sign(err) * x)))
+    
+    # Update weights
+    w <- w - alpha * grad / n
+  }
+  
+  return(w)
+}
+
+# Analytical solution function
+analytical_solution <- function(x, z) {
+  # Construct design matrix
+  x_design <- cbind(rep(1, length(x)), x)
+  
+  # Calculate coefficients using analytical solution
+  w <- solve(t(x_design) %*% x_design) %*% t(x_design) %*% z
+  
+  return(w)
+}
+
+# Fit linear regression using analytical solution
+analytical_result <- analytical_solution(data1$x, data1$z)
+
+# Fit linear regression using batch gradient descent with mean absolute error
+batch_result_mean_absolute_error <- batch_gradient_descent_mean_absolute_error(data1$x, data1$z, alpha = 0.01, epochs = 1000)
+
+# Huber loss parameter
+delta <- 1.0 # Huber loss parameter
+
+# Fit linear regression using batch gradient descent with Huber loss
+batch_result_huber_loss <- batch_gradient_descent_huber_loss(data1$x, data1$z, alpha = 0.01, epochs = 1000, delta = delta)
+
+# Print results
+cat("Analytical Solution Coefficients:", analytical_result, "\n")
+cat("Batch Gradient Descent Coefficients (Mean Absolute Error):", batch_result_mean_absolute_error, "\n")
+cat("Batch Gradient Descent Coefficients (Huber Loss):", batch_result_huber_loss, "\n")
+```
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of simulations
+no_of_simulations <- 1000
+
+# Number of data1 points
+n <- 50
+
+# Learning rate
+alpha <- 0.01
+
+# Number of epochs for gradient descent
+epochs <- 1000
+
+# True slope parameter
+true_slope <- 2
+
+# Huber loss parameter
+delta <- 1.0
+
+# Initialize vectors to store slope estimates
+mae_slopes <- numeric(no_of_simulations)
+huber_loss_slopes <- numeric(no_of_simulations)
+
+# Perform simulations
+for (i in 1:no_of_simulations) {
+  # Simulate x values
+  x <- runif(n, min = -2, max = 2)
+  
+  # Simulate err from Normal distribution
+  err <- rnorm(n, mean = 0, sd = 4)
+  
+  # Simulate z values without outliers
+  z <- 3 + 2 * x + err
+  
+  # Introduce outliers
+  for (i in 1:n) {
+    if (runif(1) < 0.1) {
+      if (runif(1) < 0.5) {
+        z[i] <- z[i] * 2  # Increase value by 200%
+      } else {
+        z[i] <- z[i] / 2  # Decrease value by 200%
+      }
+    }
+  }
+  
+  # Fit linear regression using batch gradient descent with mean absolute error
+  batch_result_mean_absolute_error <- batch_gradient_descent_mean_absolute_error(x, z, alpha, epochs)
+  
+  # Fit linear regression using batch gradient descent with Huber loss
+  batch_result_huber_loss <- batch_gradient_descent_huber_loss(x, z, alpha, epochs, delta)
+  
+  # Store slope estimates
+  mae_slopes[i] <- batch_result_mean_absolute_error[2]
+  huber_loss_slopes[i] <- batch_result_huber_loss[2]
+}
+
+# Plot histograms
+hist(mae_slopes, breaks = 30, col = "blue", xlab = "Slope Estimate", main = "Histogram of Slope Estimates")
+hist(huber_loss_slopes, breaks = 30, col = "red", add = TRUE)
+abline(v = true_slope, col = "black", lwd = 2)
+legend("topright", legend = c("Mean Absolute Error", "Huber Loss", "True Value"), fill = c("blue", "red", "black"))
+```
+
