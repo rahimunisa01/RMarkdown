@@ -1,4 +1,4 @@
-##Rmarkdown Data Analysis Projects
+## Rmarkdown Data Analysis Projects
 
 This repository contains a collection of data analysis projects and statistical explorations documented using RMarkdown. The projects focus on applying analytical techniques, visualizations, and statistical models to uncover insights and solve specific questions.
 
@@ -19,7 +19,7 @@ This repository contains a collection of data analysis projects and statistical 
   - `predictive_modeling.Rmd`  
   - `predictive_modeling.html`
 - **Description**:  
-  This project applies various predictive modeling techniques, including:
+  This project applies various predictive modelling techniques, including:
   - Regression analysis.
   - Model evaluation metrics.
   - Comparative analysis of model performance.
@@ -38,4 +38,4 @@ This repository contains a collection of data analysis projects and statistical 
 
 1. Clone the repository to your local machine:
    ```bash
-   git clone <repository-link>
+   git clone <https://github.com/rahimunisa01/RMarkdown.git>
